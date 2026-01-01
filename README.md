@@ -10,7 +10,7 @@
     <a href="https://github.com/Kuaishou-OneRec/OpenOneRec">
         <img alt="GitHub Code" src="https://img.shields.io/badge/GitHub-OpenOneRec-black?logo=github" />
     </a>
-     <a href="https://arxiv.org/abs/2508.20900">
+     <a href="https://arxiv.org/pdf/2512.24762">
         <img alt="Paper" src="https://img.shields.io/badge/Paper-ArXiv-b31b1b?logo=arxiv" />
     </a>
     <a href="#license">
