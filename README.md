@@ -152,6 +152,8 @@ text = tokenizer.apply_chat_template(
 model_inputs = tokenizer([text], return_tensors="pt").to(model.device)
 
 # conduct text completion
+# Note: In our experience, default decoding settings may be unstable for small models.
+# For 1.7B, we suggest: top_p=0.95, top_k=20, temperature=0.75 (during 0.6 to 0.8)
 generated_ids = model.generate(
     **model_inputs,
     max_new_tokens=32768
