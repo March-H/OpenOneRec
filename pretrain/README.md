@@ -79,7 +79,7 @@ Each data configuration file contains the following main fields:
 ```json
 {
     "name": "chat_completion_parquet",
-    "sources": "/path/to/data_list.json",
+    "sources": "/path/to/file_list.json",
     "base_model_dir": "/path/to/Qwen3-1.7B_itemic",
     "max_length": 30000,
     "num_epochs": 3,
@@ -90,8 +90,6 @@ Each data configuration file contains the following main fields:
     ...
 }
 ```
-
-The processing scripts in the data directory will automatically generate this configuration file.
 
 ### 4. Training
 
@@ -113,13 +111,15 @@ Main training parameters (configured in `pretrain_stg1.sh`):
 - `--model_dir`: Base model path with expanded vocabulary
 - `--output_dir`: Model output path
 
+**Note**: After training, convert the checkpoint to HuggingFace format (see [Model Conversion](#model-conversion)).
+
 #### 4.2 Stage2 Pretraining
 
 Stage2 is used for full-parameter pretraining to further optimize model performance. This stage unfreezes all model parameters and performs co-pretraining on a mixed domain of recommendation data and general text data.
 
 ```bash
 # Edit examples/pretrain_stg2.sh to set model path, output path, and other parameters
-# MODEL_DIR should point to the converted model path from Stage1 training output
+# MODEL_DIR should point to the converted hf model path from Stage1 training output
 bash examples/pretrain_stg2.sh
 ```
 
@@ -129,13 +129,15 @@ Main training parameters (configured in `pretrain_stg2.sh`):
 - `--output_dir`: Model output path
 - Note: **Does not include** `--freeze_llm` parameter, indicating full-parameter training
 
+**Note**: After training, convert the checkpoint to HuggingFace format (see [Model Conversion](#model-conversion)).
+
 #### 4.3 SFT Fine-tuning
 
 SFT (Supervised Fine-Tuning) is used for instruction fine-tuning to improve model performance on specific tasks. This stage performs supervised learning on instruction-following data, enabling the model to better understand and execute recommendation-related instructions.
 
 ```bash
 # Edit examples/posttrain_sft.sh to set model path, output path, and other parameters
-# MODEL_DIR should point to the converted model path from Stage2 training output
+# MODEL_DIR should point to the converted hf model path from Stage2 training output
 bash examples/posttrain_sft.sh
 ```
 
@@ -144,6 +146,8 @@ Main training parameters (configured in `posttrain_sft.sh`):
 - `--model_dir`: Converted model path from Stage2 output
 - `--output_dir`: Model output path
 - `add_think_pattern: true` in data configuration enables thinking mode, which automatically adds `<think>` `</think>` tags and `/think` and `/no_think` instructions (for reasoning tasks)
+
+**Note**: After training, convert the checkpoint to HuggingFace format (see [Model Conversion](#model-conversion)).
 
 ## Training Configuration
 

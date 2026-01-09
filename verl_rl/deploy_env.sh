@@ -59,6 +59,11 @@ install_local() {
     conda config --set remote_read_timeout_secs 600
     conda config --set remote_connect_timeout_secs 60
     conda config --set remote_max_retries 10
+    conda config --set show_channel_urls yes
+
+    # Accept TOS for Anaconda channels
+    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main 2>/dev/null || true
+    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r 2>/dev/null || true
 
     # Create or activate conda env
     if conda env list | grep -q "^${CONDA_ENV_NAME} "; then

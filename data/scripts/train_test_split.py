@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""训练/测试集分割脚本
+"""Train/Test Split Script
 
-从多个 parquet 文件中随机选择 N 条样本作为测试集，剩余数据作为训练集。
-两个数据集在保存前都会进行 shuffle。
+Randomly selects N samples from multiple parquet files as the test set, with remaining data as the training set.
+Both datasets are shuffled before saving.
 """
 
 import argparse
@@ -14,7 +14,7 @@ from typing import List
 import pandas as pd
 from tqdm import tqdm
 
-# 配置日志
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -24,40 +24,40 @@ logger = logging.getLogger(__name__)
 
 
 def load_all_parquet_files(file_paths: List[str], engine: str = 'pyarrow') -> pd.DataFrame:
-    """加载所有 parquet 文件并合并。
-    
+    """Load and merge all parquet files.
+
     Args:
-        file_paths: parquet 文件路径列表
-        engine: parquet 引擎，'pyarrow' 或 'fastparquet'
-        
+        file_paths: List of parquet file paths
+        engine: Parquet engine, 'pyarrow' or 'fastparquet'
+
     Returns:
-        合并后的 DataFrame
+        Merged DataFrame
     """
     if not file_paths:
-        logger.warning("没有找到 parquet 文件")
+        logger.warning("No parquet files found")
         return pd.DataFrame()
-    
-    logger.info(f"找到 {len(file_paths)} 个 parquet 文件，开始加载...")
-    
+
+    logger.info(f"Found {len(file_paths)} parquet files, starting to load...")
+
     dataframes = []
-    for file_path in tqdm(file_paths, desc="加载文件"):
+    for file_path in tqdm(file_paths, desc="Loading files"):
         try:
             df = pd.read_parquet(file_path, engine=engine)
-            logger.debug(f"  加载 {file_path}: {len(df)} 行")
+            logger.debug(f"  Loaded {file_path}: {len(df)} rows")
             dataframes.append(df)
         except Exception as e:
-            logger.error(f"  加载失败 {file_path}: {e}")
+            logger.error(f"  Failed to load {file_path}: {e}")
             continue
-    
+
     if not dataframes:
-        logger.warning("没有成功加载任何文件")
+        logger.warning("No files loaded successfully")
         return pd.DataFrame()
-    
-    # 合并所有 DataFrame
-    logger.info("合并所有数据...")
+
+    # Merge all DataFrames
+    logger.info("Merging all data...")
     combined_df = pd.concat(dataframes, ignore_index=True)
-    logger.info(f"合并完成，总计 {len(combined_df)} 行")
-    
+    logger.info(f"Merge complete, total {len(combined_df)} rows")
+
     return combined_df
 
 
@@ -66,158 +66,158 @@ def split_train_test(
     test_size: int,
     seed: int = None
 ) -> tuple:
-    """将 DataFrame 分割为训练集和测试集。
-    
+    """Split DataFrame into training and test sets.
+
     Args:
-        df: 要分割的 DataFrame
-        test_size: 测试集样本数量
-        seed: 随机种子
-        
+        df: DataFrame to split
+        test_size: Number of test samples
+        seed: Random seed
+
     Returns:
-        (train_df, test_df) 元组
+        (train_df, test_df) tuple
     """
     if len(df) == 0:
-        logger.warning("DataFrame 为空，无法分割")
+        logger.warning("DataFrame is empty, cannot split")
         return pd.DataFrame(), pd.DataFrame()
-    
+
     if test_size <= 0:
-        raise ValueError(f"test_size 必须大于 0，当前值: {test_size}")
-    
+        raise ValueError(f"test_size must be greater than 0, current value: {test_size}")
+
     total_rows = len(df)
-    
+
     if test_size >= total_rows:
         logger.warning(
-            f"测试集大小 ({test_size}) 大于等于总行数 ({total_rows})，"
-            f"将使用全部数据作为测试集，训练集为空"
+            f"Test size ({test_size}) is greater than or equal to total rows ({total_rows}), "
+            f"using all data as test set, training set will be empty"
         )
         return pd.DataFrame(), df.copy()
-    
-    # 使用 pandas 的 sample 方法进行随机采样，确保可复现性
+
+    # Use pandas sample method for random sampling, ensuring reproducibility
     if seed is not None:
-        logger.info(f"使用随机种子: {seed}")
-    
-    logger.info(f"从 {total_rows} 行中随机选择 {test_size} 行作为测试集...")
-    
-    # 使用 pandas sample 方法随机选择测试集
+        logger.info(f"Using random seed: {seed}")
+
+    logger.info(f"Randomly selecting {test_size} rows from {total_rows} rows as test set...")
+
+    # Use pandas sample method to randomly select test set
     test_df = df.sample(n=test_size, random_state=seed).copy()
-    # 获取测试集的索引
+    # Get test set indices
     test_indices = set(test_df.index)
-    # 剩余数据作为训练集
+    # Remaining data as training set
     train_df = df.drop(test_indices).copy()
-    
-    logger.info(f"分割完成: 训练集 {len(train_df)} 行, 测试集 {len(test_df)} 行")
-    
+
+    logger.info(f"Split complete: training set {len(train_df)} rows, test set {len(test_df)} rows")
+
     return train_df, test_df
 
 
 def shuffle_dataframe(df: pd.DataFrame, seed: int = None) -> pd.DataFrame:
-    """对 DataFrame 进行 shuffle。
-    
+    """Shuffle DataFrame.
+
     Args:
-        df: 要 shuffle 的 DataFrame
-        seed: 随机种子（用于可复现性）
-        
+        df: DataFrame to shuffle
+        seed: Random seed (for reproducibility)
+
     Returns:
-        shuffle 后的 DataFrame
+        Shuffled DataFrame
     """
     if len(df) == 0:
         return df.copy()
-    
-    # 使用 sample 方法进行 shuffle（frac=1 表示全部采样，即打乱）
-    # random_state 参数确保可复现性
+
+    # Use sample method for shuffling (frac=1 means sampling all data, i.e., shuffling)
+    # random_state parameter ensures reproducibility
     shuffled_df = df.sample(frac=1, random_state=seed).reset_index(drop=True)
-    
+
     return shuffled_df
 
 
 def main():
-    """主函数。"""
+    """Main function."""
     parser = argparse.ArgumentParser(
-        description='从多个 parquet 文件中随机选择 N 条样本作为测试集，剩余数据作为训练集'
+        description='Randomly select N samples from multiple parquet files as test set, remaining data as training set'
     )
     parser.add_argument(
         '--input_files',
         type=str,
         nargs='+',
         required=True,
-        help='输入 parquet 文件路径列表（可以指定多个文件）'
+        help='List of input parquet file paths (can specify multiple files)'
     )
     parser.add_argument(
         '--test_size',
         type=int,
         required=True,
-        help='测试集样本数量'
+        help='Number of test samples'
     )
     parser.add_argument(
         '--output_dir',
         type=str,
         required=True,
-        help='输出目录路径'
+        help='Output directory path'
     )
     parser.add_argument(
         '--seed',
         type=int,
         default=None,
-        help='随机种子（可选，用于可复现性）'
+        help='Random seed (optional, for reproducibility)'
     )
     parser.add_argument(
         '--engine',
         choices=['pyarrow', 'fastparquet'],
         default='pyarrow',
-        help='Parquet 处理引擎（默认: pyarrow）'
+        help='Parquet processing engine (default: pyarrow)'
     )
     parser.add_argument(
         '--test_filename',
         type=str,
         default='test.parquet',
-        help='测试集输出文件名（默认: test.parquet）'
+        help='Test set output filename (default: test.parquet)'
     )
     parser.add_argument(
         '--train_filename',
         type=str,
         default='train.parquet',
-        help='训练集输出文件名（默认: train.parquet）'
+        help='Training set output filename (default: train.parquet)'
     )
     
     args = parser.parse_args()
-    
-    # 验证参数
+
+    # Validate parameters
     if args.test_size <= 0:
-        logger.error(f"test_size 必须大于 0，当前值: {args.test_size}")
+        logger.error(f"test_size must be greater than 0, current value: {args.test_size}")
         sys.exit(1)
     
-    # 验证输入文件是否存在
+    # Validate input files exist
     input_files = []
     for file_path in args.input_files:
         path = Path(file_path)
         if not path.exists():
-            logger.warning(f"文件不存在，跳过: {file_path}")
+            logger.warning(f"File does not exist, skipping: {file_path}")
             continue
         if not path.is_file():
-            logger.warning(f"路径不是文件，跳过: {file_path}")
+            logger.warning(f"Path is not a file, skipping: {file_path}")
             continue
         if path.suffix.lower() != '.parquet':
-            logger.warning(f"不是 parquet 文件，跳过: {file_path}")
+            logger.warning(f"Not a parquet file, skipping: {file_path}")
             continue
         input_files.append(str(path))
     
     if not input_files:
-        logger.error("没有找到任何有效的 parquet 文件")
+        logger.error("No valid parquet files found")
         sys.exit(1)
     
     try:
-        # 1. 加载所有 parquet 文件
+        # 1. Load all parquet files
         logger.info("=" * 60)
-        logger.info("步骤 1: 加载 parquet 文件...")
+        logger.info("Step 1: Loading parquet files...")
         combined_df = load_all_parquet_files(input_files, engine=args.engine)
-        
+
         if len(combined_df) == 0:
-            logger.error("没有加载到任何数据")
+            logger.error("No data loaded")
             sys.exit(1)
         
-        # 2. 分割训练集和测试集
+        # 2. Split training and test sets
         logger.info("=" * 60)
-        logger.info("步骤 2: 分割训练集和测试集...")
+        logger.info("Step 2: Splitting training and test sets...")
         train_df, test_df = split_train_test(
             combined_df,
             test_size=args.test_size,
@@ -225,34 +225,34 @@ def main():
         )
         
         if len(test_df) == 0:
-            logger.error("测试集为空，无法继续")
+            logger.error("Test set is empty, cannot continue")
             sys.exit(1)
         
-        # 3. Shuffle 数据
+        # 3. Shuffle data
         logger.info("=" * 60)
-        logger.info("步骤 3: Shuffle 数据...")
+        logger.info("Step 3: Shuffling data...")
         
-        # 为训练集和测试集使用不同的种子偏移，确保 shuffle 结果不同
-        # 如果提供了 seed，使用不同的偏移量；否则都使用 None（完全随机）
+        # Use different seed offsets for training and test sets to ensure different shuffle results
+        # If seed is provided, use different offsets; otherwise use None for both (completely random)
         train_seed = (args.seed + 1000) if args.seed is not None else None
         test_seed = (args.seed + 2000) if args.seed is not None else None
         
-        logger.info("Shuffle 训练集...")
+        logger.info("Shuffling training set...")
         train_df = shuffle_dataframe(train_df, seed=train_seed)
-        
-        logger.info("Shuffle 测试集...")
+
+        logger.info("Shuffling test set...")
         test_df = shuffle_dataframe(test_df, seed=test_seed)
         
-        # 4. 保存结果
+        # 4. Save results
         logger.info("=" * 60)
-        logger.info("步骤 4: 保存结果...")
+        logger.info("Step 4: Saving results...")
         output_dir = Path(args.output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
         
         test_path = output_dir / args.test_filename
         train_path = output_dir / args.train_filename
-        
-        logger.info(f"保存测试集到: {test_path}")
+
+        logger.info(f"Saving test set to: {test_path}")
         test_df.to_parquet(
             test_path,
             engine='pyarrow',
@@ -261,7 +261,7 @@ def main():
         )
         
         if len(train_df) > 0:
-            logger.info(f"保存训练集到: {train_path}")
+            logger.info(f"Saving training set to: {train_path}")
             train_df.to_parquet(
                 train_path,
                 engine='pyarrow',
@@ -269,27 +269,27 @@ def main():
                 compression='snappy'
             )
         else:
-            logger.warning("训练集为空，跳过保存")
+            logger.warning("Training set is empty, skipping save")
         
-        # 5. 输出统计信息
+        # 5. Output statistics
         logger.info("=" * 60)
-        logger.info("处理完成！")
-        logger.info(f"输入文件数: {len(input_files)}")
-        logger.info(f"原始数据行数: {len(combined_df)}")
-        logger.info(f"训练集行数: {len(train_df)}")
-        logger.info(f"测试集行数: {len(test_df)}")
-        logger.info(f"输出目录: {output_dir}")
-        logger.info(f"训练集文件: {train_path}")
-        logger.info(f"测试集文件: {test_path}")
+        logger.info("Processing complete!")
+        logger.info(f"Number of input files: {len(input_files)}")
+        logger.info(f"Original data rows: {len(combined_df)}")
+        logger.info(f"Training set rows: {len(train_df)}")
+        logger.info(f"Test set rows: {len(test_df)}")
+        logger.info(f"Output directory: {output_dir}")
+        logger.info(f"Training set file: {train_path}")
+        logger.info(f"Test set file: {test_path}")
         if args.seed is not None:
-            logger.info(f"随机种子: {args.seed}")
+            logger.info(f"Random seed: {args.seed}")
         logger.info("=" * 60)
         
     except KeyboardInterrupt:
-        logger.info("\n操作被用户取消")
+        logger.info("\nOperation cancelled by user")
         sys.exit(1)
     except Exception as e:
-        logger.error(f"程序执行失败: {e}", exc_info=True)
+        logger.error(f"Program execution failed: {e}", exc_info=True)
         sys.exit(1)
 
 

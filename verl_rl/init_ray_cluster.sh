@@ -32,6 +32,19 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Generate conda initialization command that works with both anaconda and miniconda
+get_conda_init_cmd() {
+    cat << 'EOF'
+for conda_sh in /root/miniconda3/etc/profile.d/conda.sh \
+                /root/anaconda3/etc/profile.d/conda.sh \
+                $HOME/miniconda3/etc/profile.d/conda.sh \
+                $HOME/anaconda3/etc/profile.d/conda.sh \
+                /opt/conda/etc/profile.d/conda.sh; do
+    [ -f "$conda_sh" ] && source "$conda_sh" && break
+done
+EOF
+}
+
 # Function to stop Ray on all nodes
 stop_cluster() {
     log_info "Stopping Ray on all nodes..."
@@ -46,7 +59,7 @@ stop_cluster() {
 
     for node in ${ALL_NODES}; do
         log_info "Stopping Ray on ${node}..."
-        ssh -n ${node} "source /root/anaconda3/etc/profile.d/conda.sh && conda activate ${CONDA_ENV_NAME} && ray stop --force" 2>/dev/null &
+        ssh -n ${node} "$(get_conda_init_cmd) && conda activate ${CONDA_ENV_NAME} && ray stop --force" 2>/dev/null &
     done
 
     wait
@@ -124,7 +137,7 @@ start_cluster() {
     log_info "Logs saved to: ${LOG_DIR}/"
     echo ""
     log_info "Cluster status:"
-    ssh -n ${HEAD_NODE} "source /root/anaconda3/etc/profile.d/conda.sh && conda activate ${CONDA_ENV_NAME} && ray status"
+    ssh -n ${HEAD_NODE} "$(get_conda_init_cmd) && conda activate ${CONDA_ENV_NAME} && ray status"
 }
 
 # Main

@@ -1,7 +1,7 @@
 ## Overview
 
 This repository is built on top of the open-source [**verl**](https://github.com/volcengine/verl) (HybridFlow RLHF/RL training framework) and adds support for **on-policy distillation**.
-It is designed for scenarios where the **teacher and student use different vocabularies**, e.g., distilling from `Qwen3` (teacher) to a recommendation-pretrained model (student) that contains **extended item tokens**, while improving and preserving general-purpose capabilities.
+It is designed for scenarios where the **teacher and student use different vocabularies**, e.g., distilling from `Qwen3` (teacher) to a recommendation-pretrained model (student) that contains **extended itemic tokens**, while improving and preserving general-purpose capabilities.
 
 > **Note**: This repository is forked from [verl](https://github.com/volcengine/verl) at commit [`703a078`](https://github.com/volcengine/verl/commit/703a07856fe2544833dfce51136f386654574b30) and extended with on-policy distillation capabilities.
 
@@ -65,15 +65,14 @@ During rollout, the framework produces `distill_special_token_mask`; during log-
 
 **`DISTILL_ADV_MAX / DISTILL_ADV_MIN`**
 clip the distillation advantage to avoid extreme values when the teacher and student distributions differ substantially. The distillation signal is token-level reverse KL:
-\(A = -(\log p_{\text{student}} - \log p_{\text{teacher}})\).
+$$A = -(\log p_{\text{student}} - \log p_{\text{teacher}})$$
 
 ### Launch training
 
 The training entry script is located at `recipe/onpolicy_distill/run_qwen3_distill.sh`.
 
 ```bash
-cd /path/to/kai-verl
-bash recipe/onpolicy_distill/run_qwen3_1.7b_distill.sh /etc/mpi/hostfile
+bash recipe/onpolicy_distill/run_qwen3_distill.sh /etc/mpi/hostfile
 ```
 
 Notes:

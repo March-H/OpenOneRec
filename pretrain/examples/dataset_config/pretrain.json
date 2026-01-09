@@ -1,6 +1,6 @@
 {
     "name": "chat_completion_parquet",
-    "sources": "/code/user_foundation_data/pretrain.json",
+    "sources": "../output/split_data_pretrain/file_list.json",
     "only_assistant_loss": false,
     "max_length": 30000,
     "base_model_dir": "/code/hf_models/Qwen3-1.7B_itemic",

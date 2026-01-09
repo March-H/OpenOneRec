@@ -209,49 +209,43 @@ def load_weights_from_pt(
     elif 'state_dict' in state_dict:
         console.print("Detected 'state_dict' key, extracting nested state dictionary")
         state_dict = state_dict['state_dict']
-    
+
     checkpoint_keys = list(state_dict.keys())
     model_keys = list(model.state_dict().keys())
-    
+
     console.print(f"Checkpoint key count: {len(checkpoint_keys)}")
     console.print(f"Model key count: {len(model_keys)}")
-    
-    # 3. Check weight sharing (optional)
+
     if check_weight_sharing:
         check_embedding_weight_sharing(state_dict, verbose=True)
-    
-    # 4. Match key names
+
     console.print("Starting to match checkpoint key names to model key names...")
     key_mapping = match_checkpoint_keys_to_model(checkpoint_keys, model_keys)
-    
+
     matched_count = len(key_mapping)
     console.print(f"Successfully matched: {matched_count}/{len(checkpoint_keys)} keys")
-    
-    # 5. Build new state dictionary
+
     new_state_dict = {}
     skipped_keys = []
-    
+
     for ckpt_key in checkpoint_keys:
         target_key = key_mapping.get(ckpt_key)
         if target_key is None:
             skipped_keys.append(ckpt_key)
             continue
         new_state_dict[target_key] = state_dict[ckpt_key]
-    
+
     if skipped_keys:
         console.print(f"Skipped {len(skipped_keys)} unmatched keys")
         if len(skipped_keys) <= 10:
             console.print(f"Skipped keys: {skipped_keys}")
-    
-    # 6. Handle weight tying (optional)
+
     if handle_weight_tying_flag:
         new_state_dict = handle_weight_tying(state_dict, model_keys, new_state_dict)
-    
-    # 7. Load into model
+
     console.print("Loading state dictionary into model...")
     missing_keys, unexpected_keys = model.load_state_dict(new_state_dict, strict=strict)
-    
-    # 8. Report results
+
     if missing_keys:
         console.print(f"Missing keys ({len(missing_keys)}): {missing_keys[:10]}{'...' if len(missing_keys) > 10 else ''}")
     else:
@@ -290,26 +284,22 @@ def build_model_from_pt(
         Model with checkpoint loaded
     """
     from transformers import AutoConfig, AutoModelForCausalLM
-    
-    # 1. Load configuration
+
     config = AutoConfig.from_pretrained(
         config_path,
         trust_remote_code=trust_remote_code
     )
-    
-    # 2. Create model from configuration
+
     model = AutoModelForCausalLM.from_config(
         config,
         trust_remote_code=trust_remote_code
     )
-    
-    # 3. Move model to target device BEFORE loading checkpoint
+
     if torch_dtype is not None:
         model = model.to(torch_dtype)
     if device != 'cpu':
         model = model.to(device)
-    
-    # 4. Load checkpoint to the same device as the model
+
     target_load_device = device if device != 'cpu' else 'cpu'
     load_weights_from_pt(
         model=model,
@@ -346,21 +336,19 @@ def build_model_from_hf(
         Loaded model
     """
     from transformers import AutoModelForCausalLM
-    
-    # Determine if we should use device_map
+
     should_use_device_map = use_device_map and device != "cpu" and "cuda" in device
-    
+
     model = AutoModelForCausalLM.from_pretrained(
         model_name_or_path,
         torch_dtype=torch_dtype,
         device_map="auto" if should_use_device_map else None,
         trust_remote_code=trust_remote_code
     )
-    
-    # If device_map is not used, manually move model to device
+
     if not should_use_device_map:
         model = model.to(device)
-    
+
     return model
 
 
@@ -386,17 +374,14 @@ def export_pt_to_safetensor(
     """
     from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 
-    # Calculate hash as suffix for caching
     hash_input = f"{config_path}_{checkpoint_path}".encode('utf-8')
     hash_suffix = hashlib.md5(hash_input).hexdigest()[:16]
 
-    # Determine output directory
     if output_dir is None:
         output_dir = f"/tmp/hf_checkpoint_{hash_suffix}"
 
     temp_model_path = Path(output_dir) / "converted_model"
 
-    # Check if converted model already exists (cache hit)
     if use_cache and temp_model_path.exists():
         has_config = (temp_model_path / "config.json").exists()
         has_weights = (

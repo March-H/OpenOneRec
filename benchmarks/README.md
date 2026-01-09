@@ -36,14 +36,10 @@ Place the evaluation data in the project directory:
 ### Step 2: Install Dependencies
 
 ```bash
-# Navigate to benchmarks directory
 cd benchmarks
 
-# Install project (without dependencies to avoid overwriting existing environment)
 pip install -e . --no-deps --no-build-isolation
 
-# For full installation with all dependencies
-pip install -e .
 ```
 
 ### Step 3: Start Ray Cluster
@@ -56,11 +52,10 @@ bash scripts/init_ray_cluster.sh
 ### Step 4: Run Evaluation
 
 ```bash
-# Set environment variables
 export BENCHMARK_BASE_DIR="./benchmarks"
+export BENCHMARK_DATA_DIR="./raw_data/onerec_data/benchmark_data"
 export DATA_VERSION="v1.0"
 
-# Run evaluation script
 bash eval_script.sh <model_path> <result_name> <enable_thinking>
 ```
 
@@ -75,14 +70,14 @@ bash eval_script.sh <model_path> <result_name> <enable_thinking>
 ```bash
 # Without thinking mode
 bash eval_script.sh \
-    model_output/sft/global_step10/converted \
-    sft_nonthink \
+    /path/to/model \
+    model_nonthink \
     false
 
 # With thinking mode
 bash eval_script.sh \
-    model_output/sft/global_step10/converted \
-    sft_think \
+    /path/to/model \
+    model_think \
     true
 ```
 

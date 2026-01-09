@@ -1,36 +1,36 @@
 """
-LLM API 使用示例
-展示各种调用方式和使用场景
+LLM API Usage Examples
+Demonstrates various calling methods and use cases
 """
 
 # ============================================================================
-# 示例1: 使用配置文件（最简单）
+# Example 1: Using Configuration File (Simplest)
 # ============================================================================
 def example1_use_config():
-    """从配置文件加载并使用"""
+    """Load and use from configuration file"""
     from api import get_client_from_config
 
     print("=" * 60)
-    print("示例1: 使用配置文件")
+    print("Example 1: Using Configuration File")
     print("=" * 60)
 
-    # 从配置文件创建客户端
+    # Create client from configuration file
     client = get_client_from_config("gemini")
 
-    # 生成文本
-    response = client.generate("用一句话解释什么是AI")
-    print(f"回答: {response}\n")
+    # Generate text
+    response = client.generate("Explain what AI is in one sentence")
+    print(f"Answer: {response}\n")
 
 
 # ============================================================================
-# 示例2: 直接传参
+# Example 2: Direct Parameters
 # ============================================================================
 def example2_direct_params():
-    """直接传递配置参数"""
+    """Pass configuration parameters directly"""
     from api import get_client
 
     print("=" * 60)
-    print("示例2: 直接传递参数")
+    print("Example 2: Direct Parameters")
     print("=" * 60)
 
     # Gemini
@@ -50,177 +50,177 @@ def example2_direct_params():
         base_url="https://qianfan.baidubce.com/v2"
     )
 
-    # 使用
-    response = gemini_client.generate("你好")
+    # Usage
+    response = gemini_client.generate("Hello")
     print(f"Gemini: {response}\n")
 
 
 # ============================================================================
-# 示例3: 批量生成（并发）
+# Example 3: Batch Generation (Concurrent)
 # ============================================================================
 def example3_batch_generate():
-    """批量生成文本，支持并发"""
+    """Batch text generation with concurrent support"""
     from api import get_client_from_config
 
     print("=" * 60)
-    print("示例3: 批量生成（并发）")
+    print("Example 3: Batch Generation (Concurrent)")
     print("=" * 60)
 
     prompts = [
-        "什么是机器学习？",
-        "解释一下深度学习",
-        "神经网络的原理",
-        "什么是自然语言处理？",
-        "计算机视觉的应用"
+        "What is machine learning?",
+        "Explain deep learning",
+        "Principles of neural networks",
+        "What is natural language processing?",
+        "Applications of computer vision"
     ]
 
-    # 使用客户端实例的batch_generate方法（推荐）
+    # Use client instance's batch_generate method (recommended)
     client = get_client_from_config("gemini")
     results = client.batch_generate(
         prompts=prompts,
-        max_workers=3,  # 3个并发线程
-        show_progress=True  # 显示进度条
+        max_workers=3,  # 3 concurrent threads
+        show_progress=True  # Show progress bar
     )
 
-    # 处理结果
+    # Process results
     for i, item in enumerate(results, 1):
-        print(f"\n问题{i}: {item['prompt']}")
+        print(f"\nQuestion {i}: {item['prompt']}")
         if item['success']:
-            print(f"回答: {item['result'][:100]}...")
+            print(f"Answer: {item['result'][:100]}...")
         else:
-            print(f"错误: {item['error']}")
+            print(f"Error: {item['error']}")
 
 
 # ============================================================================
-# 示例4: 控制生成参数
+# Example 4: Custom Generation Parameters
 # ============================================================================
 def example4_custom_params():
-    """自定义生成参数"""
+    """Custom generation parameters"""
     from api import get_client_from_config
 
     print("=" * 60)
-    print("示例4: 自定义生成参数")
+    print("Example 4: Custom Generation Parameters")
     print("=" * 60)
 
     client = get_client_from_config("deepseek")
 
-    # 创造性生成（高temperature）
+    # Creative generation (high temperature)
     creative = client.generate(
-        "写一首关于春天的诗",
+        "Write a poem about spring",
         temperature=0.9,
         max_tokens=200
     )
-    print(f"创造性输出:\n{creative}\n")
+    print(f"Creative output:\n{creative}\n")
 
-    # 精确生成（低temperature）
+    # Precise generation (low temperature)
     precise = client.generate(
-        "1+1等于几？",
+        "What is 1+1?",
         temperature=0.1,
         max_tokens=50
     )
-    print(f"精确输出:\n{precise}\n")
+    print(f"Precise output:\n{precise}\n")
 
 
 # ============================================================================
-# 示例5: 错误处理
+# Example 5: Error Handling
 # ============================================================================
 def example5_error_handling():
-    """展示错误处理"""
+    """Demonstrate error handling"""
     from api import get_client_from_config
 
     print("=" * 60)
-    print("示例5: 错误处理")
+    print("Example 5: Error Handling")
     print("=" * 60)
 
     try:
         client = get_client_from_config("gemini")
 
-        # 正常调用
-        response = client.generate("你好")
-        print(f"成功: {response}")
+        # Normal call
+        response = client.generate("Hello")
+        print(f"Success: {response}")
 
-        # 空提示词（会抛出ValueError）
+        # Empty prompt (will raise ValueError)
         response = client.generate("")
 
     except ValueError as e:
-        print(f"参数错误: {e}")
+        print(f"Parameter error: {e}")
     except Exception as e:
-        print(f"API调用失败: {e}")
+        print(f"API call failed: {e}")
 
 
 # ============================================================================
-# 示例6: 切换模型
+# Example 6: Switch Models
 # ============================================================================
 def example6_switch_models():
-    """在不同模型间切换"""
+    """Switch between different models"""
     from api import get_client_from_config
 
     print("=" * 60)
-    print("示例6: 切换模型")
+    print("Example 6: Switch Models")
     print("=" * 60)
 
-    question = "什么是量子计算？"
+    question = "What is quantum computing?"
 
     for model_name in ["gemini", "deepseek"]:
         try:
             client = get_client_from_config(model_name)
             response = client.generate(question)
-            print(f"\n{model_name.upper()}的回答:")
+            print(f"\n{model_name.upper()}'s answer:")
             print(response[:150] + "...")
         except Exception as e:
-            print(f"\n{model_name}调用失败: {e}")
+            print(f"\n{model_name} call failed: {e}")
 
 
 # ============================================================================
-# 示例7: 实际应用 - 用户画像生成
+# Example 7: Real Application - User Profile Generation
 # ============================================================================
 def example7_user_portrait():
-    """实际应用：根据用户行为生成用户画像"""
+    """Real application: Generate user profile based on user behavior"""
     from api import get_client_from_config
 
     print("=" * 60)
-    print("示例7: 用户画像生成")
+    print("Example 7: User Profile Generation")
     print("=" * 60)
 
-    # 用户行为数据
+    # User behavior data
     user_behavior = """
-    用户最近观看的视频：
-    1. 机器学习入门教程
-    2. Python编程技巧
-    3. 深度学习实战项目
-    4. 数据分析案例
-    5. AI领域最新动态
+    User's recently watched videos:
+    1. Machine Learning Tutorial
+    2. Python Programming Tips
+    3. Deep Learning Practical Projects
+    4. Data Analysis Case Studies
+    5. Latest AI Trends
     """
 
-    prompt = f"""根据以下用户行为数据，生成一份简洁的用户画像：
+    prompt = f"""Based on the following user behavior data, generate a concise user profile:
 
 {user_behavior}
 
-要求：
-1. 总结用户的兴趣领域
-2. 推测用户的技能水平
-3. 给出3-5个精准的标签
+Requirements:
+1. Summarize user's areas of interest
+2. Infer user's skill level
+3. Provide 3-5 precise tags
 """
 
     client = get_client_from_config("gemini")
     portrait = client.generate(prompt, temperature=0.5)
 
-    print("用户画像:")
+    print("User Profile:")
     print(portrait)
 
 
 # ============================================================================
-# 示例8: 使用直接导入的类
+# Example 8: Direct Import of Classes
 # ============================================================================
 def example8_direct_import():
-    """直接导入客户端类"""
+    """Import client classes directly"""
     from api import GeminiClient, DeepSeekClient
 
     print("=" * 60)
-    print("示例8: 直接导入客户端类")
+    print("Example 8: Direct Import of Client Classes")
     print("=" * 60)
 
-    # 直接实例化
+    # Direct instantiation
     gemini = GeminiClient(
         project="your-project",
         location="us-central1"
@@ -231,38 +231,38 @@ def example8_direct_import():
         appid="your-appid"
     )
 
-    print("客户端创建成功")
-    print(f"Gemini客户端: {gemini}")
-    print(f"DeepSeek客户端: {deepseek}")
+    print("Clients created successfully")
+    print(f"Gemini client: {gemini}")
+    print(f"DeepSeek client: {deepseek}")
 
 
 # ============================================================================
-# 主函数
+# Main Function
 # ============================================================================
 def main():
-    """运行所有示例"""
+    """Run all examples"""
     examples = [
-        ("使用配置文件", example1_use_config),
-        ("直接传参", example2_direct_params),
-        ("批量生成", example3_batch_generate),
-        ("自定义参数", example4_custom_params),
-        ("错误处理", example5_error_handling),
-        ("切换模型", example6_switch_models),
-        ("用户画像生成", example7_user_portrait),
-        ("直接导入类", example8_direct_import),
+        ("Using Configuration File", example1_use_config),
+        ("Direct Parameters", example2_direct_params),
+        ("Batch Generation", example3_batch_generate),
+        ("Custom Parameters", example4_custom_params),
+        ("Error Handling", example5_error_handling),
+        ("Switch Models", example6_switch_models),
+        ("User Profile Generation", example7_user_portrait),
+        ("Direct Import Classes", example8_direct_import),
     ]
 
     print("\n" + "=" * 60)
-    print("LLM API 使用示例集")
+    print("LLM API Usage Examples")
     print("=" * 60)
-    print("\n可用示例：")
+    print("\nAvailable examples:")
     for i, (name, _) in enumerate(examples, 1):
         print(f"{i}. {name}")
 
-    print("\n提示：运行前请确保已配置 api/config/llm_config.json")
+    print("\nNote: Please ensure api/config/llm_config.json is configured before running")
     print("\n" + "=" * 60 + "\n")
 
-    # 取消注释下面的行来运行特定示例
+    # Uncomment the lines below to run specific examples
     # example1_use_config()
     # example2_direct_params()
     # example3_batch_generate()

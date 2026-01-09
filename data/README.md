@@ -2,6 +2,13 @@
 
 This directory contains data processing scripts and dataset format specifications for the OpenOneRec project.
 
+## Table of Contents
+
+- [Quick Start](#quick-start) - Get started quickly with dataset download and processing
+- [Directory Structure](#directory-structure)
+- [Dataset Format Specification](#dataset-format-specification)
+- [Notes](#notes)
+
 ## Directory Structure
 
 - **general_text/**: General text data used in training, including pretraining and SFT datasets for mathematics, code, reasoning, and other domains
@@ -103,19 +110,32 @@ First, download the corresponding datasets from HuggingFace:
 - [SFT General Text Dataset](https://huggingface.co/datasets/OpenOneRec/OpenOneRec-General-SFT)
 - [OneRec Recommendation Dataset](https://huggingface.co/datasets/OpenOneRec/OpenOneRec-RecIF)
 
-### 2. Process Recommendation Data
-
-Edit `onerec_data/run.sh` to set the following paths:
+You can download the datasets using the following commands (run from the **project root directory**):
 
 ```bash
-INPUT_METADATA="path/to/onerec_bench_release.parquet"
-PID2SID_MAPPING="path/to/video_ad_pid2sid.parquet"
-PRODUCT_PID2SID_MAPPING="path/to/product_pid2sid.parquet"
-CAPTION_INPUT="path/to/pid2caption.parquet"
-OUTPUT_BASE_DIR="./output"
+pip install huggingface_hub
+
+export HF_TOKEN=<YOUR_HUGGINGFACE_TOKEN>
+
+hf download OpenOneRec/OpenOneRec-General-Pretrain \
+    --repo-type dataset \
+    --token $HF_TOKEN \
+    --local-dir ./raw_data/general_text/pretrain
+
+hf download OpenOneRec/OpenOneRec-General-SFT \
+    --repo-type dataset \
+    --token $HF_TOKEN \
+    --local-dir ./raw_data/general_text/sft
+
+hf download OpenOneRec/OpenOneRec-RecIF \
+    --repo-type dataset \
+    --token $HF_TOKEN \
+    --local-dir ./raw_data/onerec_data
 ```
 
-Then run:
+### 2. Process Recommendation Data
+
+run:
 
 ```bash
 cd data/onerec_data

@@ -1,29 +1,29 @@
 #!/bin/bash
-# RL 数据切分脚本：将多个 RL 任务的数据集合并后切分为训练集和测试集
+# RL data splitting script: Merge multiple RL task datasets and split into training and test sets
 
 set -e
 
-# 配置
-# onerec 数据集产出路径，rl使用sft开头的数据集
-REC_DATA_PATH="data/onerec_data"
+# Configuration
+# onerec dataset output path, rl uses datasets starting with sft
+REC_DATA_PATH="../output"
 
-# RL 依赖的任务
+# Tasks that RL depends on
 VIDEO_REC=${REC_DATA_PATH}/sft_video_rec.parquet
 AD_REC=${REC_DATA_PATH}/sft_ad_rec.parquet
 PRODUCT_REC=${REC_DATA_PATH}/sft_product_rec.parquet
 INTERACTIVE_REC=${REC_DATA_PATH}/sft_interactive_rec.parquet
 LABEL_COND_REC=${REC_DATA_PATH}/sft_label_cond_rec.parquet
 
-# 输出配置
-OUTPUT_DIR="./output/rl_data"
+# Output configuration
+OUTPUT_DIR="../output/rl_data"
 TEST_SIZE=1000
 SEED=42
 ENGINE="pyarrow"
 
-# 获取脚本目录
+# Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# 定义所有需要处理的任务文件
+# Define all task files to process
 declare -a TASK_FILES=(
     "${VIDEO_REC}"
     "${AD_REC}"
@@ -32,33 +32,33 @@ declare -a TASK_FILES=(
     "${LABEL_COND_REC}"
 )
 
-# 检查输入文件是否存在
-echo "检查输入文件..."
+# Check if input files exist
+echo "Checking input files..."
 MISSING_FILES=0
 for file in "${TASK_FILES[@]}"; do
     if [ ! -f "${file}" ]; then
-        echo "警告: 文件不存在: ${file}"
+        echo "Warning: File does not exist: ${file}"
         MISSING_FILES=$((MISSING_FILES + 1))
     fi
 done
 
 if [ ${MISSING_FILES} -eq ${#TASK_FILES[@]} ]; then
-    echo "错误: 所有输入文件都不存在"
+    echo "Error: All input files do not exist"
     exit 1
 fi
 
-# 执行 train_test_split，将所有文件合并后统一处理
+# Execute train_test_split, merge all files and process them together
 echo ""
-echo "开始处理 RL 数据切分..."
+echo "Starting RL data splitting..."
 echo "=========================================="
-echo "输入文件:"
+echo "Input files:"
 for file in "${TASK_FILES[@]}"; do
     if [ -f "${file}" ]; then
         echo "  - ${file}"
     fi
 done
-echo "输出目录: ${OUTPUT_DIR}"
-echo "测试集大小: ${TEST_SIZE}"
+echo "Output directory: ${OUTPUT_DIR}"
+echo "Test set size: ${TEST_SIZE}"
 echo "=========================================="
 
 python3 "${SCRIPT_DIR}/scripts/train_test_split.py" \
@@ -72,8 +72,8 @@ python3 "${SCRIPT_DIR}/scripts/train_test_split.py" \
 
 echo ""
 echo "=========================================="
-echo "RL 数据处理完成！"
-echo "输出目录: ${OUTPUT_DIR}"
-echo "  - train.parquet (训练集)"
-echo "  - test.parquet (测试集)"
+echo "RL data processing completed!"
+echo "Output directory: ${OUTPUT_DIR}"
+echo "  - train.parquet (training set)"
+echo "  - test.parquet (test set)"
 echo "=========================================="

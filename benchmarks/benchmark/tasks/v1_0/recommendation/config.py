@@ -32,7 +32,7 @@ RECOMMENDATION_GENERATION_CONFIG = {
 # Common evaluation config for recommendation tasks
 RECOMMENDATION_EVALUATION_CONFIG = {
     "metrics": ["pass@k", "position1_pass@k", "recall@k"],
-    "k_values": [1, 32, 128],
+    "k_values": [1, 32],
     "select_k": "first_k",  # Strategy for selecting k predictions: 'first_k' or 'random_k'
 
     # PID-based evaluation settings
@@ -79,8 +79,8 @@ PRODUCT_CONFIG = {
     "name": "product",
     "source": "Kuaishou Internal",
     "splits": ["test"],
-    "size": 28536,
-    "sample_size": 28536,
+    "size": 27910,
+    "sample_size": 27910,
     "description": "Predict next clicked product",
     "data_fields": {
         "messages_field": "messages",
@@ -96,8 +96,8 @@ AD_CONFIG = {
     "name": "ad",
     "source": "Kuaishou Internal",
     "splits": ["test"],
-    "size": 30131,
-    "sample_size": 30131,
+    "size": 27677,
+    "sample_size": 27677,
     "description": "Predict next clicked advertisement",
     "data_fields": {
         "messages_field": "messages",

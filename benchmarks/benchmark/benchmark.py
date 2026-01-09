@@ -43,7 +43,6 @@ class DataLoaderWrapper:
     
     def load_data(self, task_name: str, split: str = "test", sample_size: Optional[Any] = None):
         """Load data using new loader system"""
-        # Get or create loader for this task
         if task_name not in self._loader_cache:
             self._loader_cache[task_name] = get_loader(
                 task_name=task_name,
@@ -53,8 +52,6 @@ class DataLoaderWrapper:
             )
 
         loader = self._loader_cache[task_name]
-
-        # All loaders now use the new interface: load_data(split, sample_size)
         return loader.load_data(split=split, sample_size=sample_size)
 
 
@@ -119,7 +116,6 @@ class Benchmark:
                     justify="center"
                 )
                  
-                # In flat architecture, task_type directly corresponds to task configuration dictionary
                 task_config = BenchmarkTable[benchmark_version][task_type]
                 
                 console.print(
@@ -173,8 +169,7 @@ class Benchmark:
         total_tasks = 0
         completed_tasks = 0
         task_table = BenchmarkTable[self.benchmark_version]
-        
-        # Pre-calculate total number of tasks
+
         for task_name in self.task_types:
             if task_name not in task_table:
                 continue

@@ -34,7 +34,7 @@ LABEL_PRED_CONFIG = {
         "max_new_thinking_tokens": 1000
     },
     "evaluation_config": {
-        "metrics": ["auc", "wuauc"],
+        "metrics": ["auc"],
     },
     "task_type": "logprobs_classification",  # Special task type
 }

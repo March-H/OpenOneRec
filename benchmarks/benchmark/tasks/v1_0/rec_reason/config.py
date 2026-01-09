@@ -7,8 +7,8 @@ REC_REASON_CONFIG = {
     "name": "rec_reason",
     "source": "Kuaishou Internal",
     "splits": ["test"],
-    "size": 474,
-    "sample_size": 474,
+    "size": 470,
+    "sample_size": 470,
     "description": "Recommendation reason inference",
     "data_fields": {
         "messages_field": "messages",
@@ -34,7 +34,7 @@ REC_REASON_CONFIG = {
         "llm_eval_enabled": True,                  # Whether to enable LLM evaluation
         "llm_judge_model": "gemini",               # Judge LLM type: gemini/deepseek/claude
         "llm_max_workers": 1,                      # Concurrent workers for LLM calls
-        "llm_max_samples": 474,                    # Max samples to evaluate (None for all)
+        "llm_max_samples": 470,                    # Max samples to evaluate (None for all)
     }
 }
 
