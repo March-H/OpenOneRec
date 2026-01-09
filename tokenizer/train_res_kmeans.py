@@ -8,7 +8,7 @@ from tqdm import tqdm
 from res_kmeans import ResKmeans
 
 
-def read_train_data(path, max_data_size, emb_dim):
+def read_train_data(path, emb_dim):
     """Read training data from local parquet files"""
     dataset = pq.ParquetDataset(path)
 
@@ -32,11 +32,7 @@ def read_train_data(path, max_data_size, emb_dim):
         embeddings.append(emb_chunk)
         current_size += len(emb_chunk)
 
-        if current_size >= max_data_size:
-            print(f"Reached max_data_size: {current_size}")
-            break
-
-    result = np.concatenate(embeddings, axis=0)[:max_data_size]
+    result = np.concatenate(embeddings, axis=0)
     print(f"Final shape: {result.shape}")
     return result
 
@@ -56,7 +52,7 @@ def main():
     np.random.seed(args.seed)
 
     # Load data
-    embeddings = read_train_data(args.data_path, args.max_data_size, args.dim)
+    embeddings = read_train_data(args.data_path, args.dim)
 
     # Create and train model
     model = ResKmeans(
