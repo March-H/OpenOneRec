@@ -25,11 +25,11 @@ RUN_SFT_RECO_REASON=1
 # ============== Configuration ==============
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-INPUT_METADATA="../../raw_data/onerec_data/onerec_bench_release.parquet"
-PID2SID_MAPPING="../../raw_data/onerec_data/video_ad_pid2sid.parquet"
-PRODUCT_PID2SID_MAPPING="../../raw_data/onerec_data/product_pid2sid.parquet"
-CAPTION_INPUT="../../raw_data/onerec_data/pid2caption.parquet"
-OUTPUT_BASE_DIR="../../output"
+INPUT_METADATA="../raw_data/onerec_data/onerec_bench_release.parquet"
+PID2SID_MAPPING="../raw_data/onerec_data/video_ad_pid2sid.parquet"
+PRODUCT_PID2SID_MAPPING="../raw_data/onerec_data/product_pid2sid.parquet"
+CAPTION_INPUT="../raw_data/onerec_data/pid2caption.parquet"
+OUTPUT_BASE_DIR="../output"
 
 SEED=42
 

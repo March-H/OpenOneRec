@@ -4,9 +4,9 @@
 set -e
 
 # Configuration
-INPUT_PATH="../raw_data/general_text/sft"
-OUTPUT_FILE="../output/onpolicy_distillation.parquet"
-TEMP_FILE="../output/onpolicy_distillation_temp.parquet"
+INPUT_PATH="raw_data/general_text/sft"
+OUTPUT_FILE="output/onpolicy_distillation.parquet"
+TEMP_FILE="output/onpolicy_distillation_temp.parquet"
 NUM_SAMPLES=200000
 SEED=42
 ENGINE="pyarrow"

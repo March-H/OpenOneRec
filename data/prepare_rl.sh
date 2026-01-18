@@ -5,7 +5,7 @@ set -e
 
 # Configuration
 # onerec dataset output path, rl uses datasets starting with sft
-REC_DATA_PATH="../output"
+REC_DATA_PATH="output"
 
 # Tasks that RL depends on
 VIDEO_REC=${REC_DATA_PATH}/sft_video_rec.parquet
@@ -15,7 +15,7 @@ INTERACTIVE_REC=${REC_DATA_PATH}/sft_interactive_rec.parquet
 LABEL_COND_REC=${REC_DATA_PATH}/sft_label_cond_rec.parquet
 
 # Output configuration
-OUTPUT_DIR="../output/rl_data"
+OUTPUT_DIR="output/rl_data"
 TEST_SIZE=1000
 SEED=42
 ENGINE="pyarrow"
