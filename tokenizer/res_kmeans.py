@@ -38,22 +38,32 @@ class ResKmeans(nn.Module):
             print(f"layer {l} finished")
     
     def encode(self, x, n_layers=None):
+        '''
+        x: [batch, hidden_size] -> [b, h]
+        centroids[i]: [codebook_size, h] -> [k, h]，相当于词表多大，就有多少个聚类中心
+        将\sum{(x-c)^2}拆开变成x^2+c^2-2cx
+        通过差分计算，得到hidden对应的semantic code，layers一般设置为3
+        return: [b, n_layers]
+        '''
         if n_layers is None:
             n_layers = self.n_layers
         else:
             assert n_layers <= self.n_layers
         out = []
         for l in range(n_layers):
-            x_norm_sq = x.pow(2.).sum(dim=1, keepdim=True)
-            codebook_t_norm_sq = self.centroids[l].T.pow(2.).sum(dim=0, keepdim=True)
-            distances = torch.addmm(x_norm_sq + codebook_t_norm_sq, x, self.centroids[l].T, alpha=-2.0)
-            code = distances.argmin(dim=-1)
+            x_norm_sq = x.pow(2.).sum(dim=1, keepdim=True) # [b, 1]
+            codebook_t_norm_sq = self.centroids[l].T.pow(2.).sum(dim=0, keepdim=True) # [1, k]
+            distances = torch.addmm(x_norm_sq + codebook_t_norm_sq, x, self.centroids[l].T, alpha=-2.0) # alpha * (x @ c.T) + beta, beta = x^2 + c^2 [b,k]
+            code = distances.argmin(dim=-1) # [b]代表每个token聚类选到的中心
             x = x - self.centroids[l][code]
             out.append(code)
         out = torch.stack(out, dim=1)
         return out
     
     def decode(self, code):
+        '''
+        encode的反向过程，将每一层的值累加，反译处原始embedding
+        '''
         out = torch.zeros((code.shape[0], self.dim), dtype=torch.float32, device=code.device)
         n_layers = code.shape[1]
         assert n_layers <= self.n_layers
