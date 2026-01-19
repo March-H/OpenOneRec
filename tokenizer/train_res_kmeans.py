@@ -39,8 +39,8 @@ def read_train_data(path, emb_dim):
 
 def main():
     parser = argparse.ArgumentParser(description='Train ResKmeans')
-    parser.add_argument('--data_path', type=str, required=True, help='training data path')
-    parser.add_argument('--model_path', type=str, required=True, help='model save path')
+    parser.add_argument('--data_path', type=str, default="data/embeddings.parquet", help='training data path')
+    parser.add_argument('--model_path', type=str, default="checkpoints", help='model save path')
     parser.add_argument('--n_layers', type=int, default=3, help='number of layers')
     parser.add_argument('--codebook_size', type=int, default=8192, help='codebook size')
     parser.add_argument('--dim', type=int, default=4096, help='embedding dimension')
@@ -53,12 +53,16 @@ def main():
 
     # Load data
     embeddings = read_train_data(args.data_path, args.dim)
+    # extra_kmeans_config = {
+    #     'gpu': True
+    # }
 
     # Create and train model
     model = ResKmeans(
         n_layers=args.n_layers,
         codebook_size=args.codebook_size,
         dim=args.dim,
+        # extra_kmeans_config=extra_kmeans_config
     )
     model.train_kmeans(torch.tensor(embeddings))
 

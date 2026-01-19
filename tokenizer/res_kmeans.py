@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from torch import nn
 
@@ -9,22 +10,33 @@ class ResKmeans(nn.Module):
         self.codebook_size = codebook_size
         self.dim = dim
         self.extra_kmeans_config = extra_kmeans_config
+        if self.extra_kmeans_config is None:
+            self.extra_kmeans_config = {
+                'gpu': True
+            }
+        elif 'gpu' not in self.extra_kmeans_config:
+            self.extra_kmeans_config['gpu'] = True
         self.centroids = nn.ParameterList([
             nn.Parameter(torch.zeros((codebook_size,dim), requires_grad=False))
             for i in range(n_layers)
         ])
 
     def calc_loss(self, x, out, epsilon=1e-4):
+        if isinstance(x, np.ndarray):
+            x = torch.from_numpy(x)
+        if isinstance(out, np.ndarray):
+            out = torch.from_numpy(out)
         loss = ((out - x) ** 2).mean()
         rel_loss = (torch.abs(x - out) / (torch.maximum(torch.abs(x), torch.abs(out)) + epsilon)).mean()
         return {'loss': loss.item(), 'rel_loss': rel_loss.item()}
-    
+
     def train_kmeans(self, inputs, verbose=True):
         import faiss
         kmeans = faiss.Kmeans(self.dim, self.codebook_size, spherical=False, **self.extra_kmeans_config)
         x = inputs.clone()
         out = torch.zeros_like(x)
         for l in range(self.n_layers):
+            print(f"\n--- Layer {l + 1}/{self.n_layers} Training ---")
             kmeans.train(x)
             _, I = kmeans.index.search(x, 1)
             I = I.reshape([-1])

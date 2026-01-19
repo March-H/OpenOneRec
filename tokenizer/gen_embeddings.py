@@ -4,6 +4,8 @@ import torch.nn as nn
 from transformers import AutoModel, AutoTokenizer
 from tqdm import tqdm
 import os
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 # ================= 你的配置 =================
 # 1. 输入：你下载的 RecIF 原始文本数据
@@ -60,9 +62,8 @@ def main():
         BATCH_SIZE = BATCH_SIZE * torch.cuda.device_count()
     else:
         print("未检测到多 GPU，将使用单卡运行。")
-
     model.to(DEVICE)
-
+    WRITE_BATCH = BATCH_SIZE * 10
 
     print(f"正在读取数据: {INPUT_FILE}")
     try:
@@ -77,13 +78,24 @@ def main():
     text_col = 'dense_caption' if 'dense_caption' in df.columns else 'text'
     # 确保是字符串
     texts = df[text_col].astype(str).tolist()
-    pids = df['pid'].tolist()
+    pids = df['pid'].astype(str).tolist()
 
-    all_embeddings = []
+    schema = pa.schema([
+        ('pid', pa.string()),
+        ('embedding', pa.list_(pa.float32()))
+    ])
+
+    writer = pq.ParquetWriter(OUTPUT_FILE, schema)
+    print(f"已创建流式写入器，写入到: {OUTPUT_FILE}")
+
+    temp_pids = []
+    temp_embeddings = []
 
     print("开始生成 Embeddings...")
     for i in tqdm(range(0, len(df), BATCH_SIZE)):
-        batch_texts = texts[i: i + BATCH_SIZE]
+        batch_end = min(i + BATCH_SIZE, len(df))
+        batch_texts = texts[i: batch_end]
+        batch_pids = pids[i: batch_end]
 
         inputs = tokenizer(
             batch_texts,
@@ -94,15 +106,26 @@ def main():
         ).to(DEVICE)
 
         input_ids = inputs["input_ids"].to(DEVICE)
-        attention_mask = inputs["input_ids"].to(DEVICE)
+        attention_mask = inputs["attention_mask"].to(DEVICE)
 
         with torch.no_grad():
             batch_embeddings = model(input_ids, attention_mask)
-            all_embeddings.extend(batch_embeddings.cpu().numpy().tolist())
+            batch_embeddings = batch_embeddings.cpu().numpy().tolist()
+            temp_embeddings.extend(batch_embeddings)
+            temp_pids.extend(batch_pids)
 
-    print(f"保存至: {OUTPUT_FILE}")
-    out_df = pd.DataFrame({"pid": pids, "embedding": all_embeddings})
-    out_df.to_parquet(OUTPUT_FILE)
+        if len(temp_pids) >= WRITE_BATCH or i + BATCH_SIZE >= len(df):
+            table = pa.Table.from_pydict({
+                "pid": temp_pids,
+                "embedding": temp_embeddings
+            }, schema=schema)
+            writer.write_table(table)
+            temp_pids = []
+            temp_embeddings = []
+            import gc
+            gc.collect()
+
+    writer.close()
     print("生成完成！")
 
 
